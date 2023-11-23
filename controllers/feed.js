@@ -112,6 +112,7 @@ exports.updatePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+      //로그인한 사람이랑 맞는지 확인 해야 됨
       if (post.creator.toString() !== req.userId) {
         const error = new Error("사용자 일치하지 않음");
         error.statusCode = 403;
@@ -145,17 +146,24 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+      //로그인한 사람이랑 맞는지 확인 해야 됨
       if (post.creator.toString() !== req.userId) {
         const error = new Error("사용자 일치하지 않음");
         error.statusCode = 403;
         throw error;
       }
-      //로그인한 사람이랑 맞는지 확인 해야 됨
-      clearImage(post.imageUrl);
-      return Post.findOneAndDelete(postId);
+      clearImage(post.imageUrl); //이미지파일 삭제
+      return Post.findOneAndDelete(postId); //mongo에서 게시물 삭제
     })
-    .then((result) => {
+    .then((result)=>{
       console.log(result);
+      return User.findById(req.userId)
+    })
+    .then((user) => {
+      user.posts.pull(postId) //유저에 저장되어있는 postId 삭제 [관계 제거]
+      return user.save();
+    })
+    .then((user)=>{
       res.status(200).json({ message: "delete success" });
     })
     .catch(err=>{

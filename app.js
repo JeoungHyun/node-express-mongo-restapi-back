@@ -60,11 +60,11 @@ app.use("/feed", feedRoutes);
 app.use("/auth", authRoutes);
 
 app.use((error, req, res, next) => {
-  console.log("error:::",error);
+  console.log("error:::", error);
   const status = error.statusCode || 500;
   const message = error.message;
   //const data = error.data;
-  res.status(status).json({ message: message});
+  res.status(status).json({ message: message });
 });
 
 mongoose
@@ -74,7 +74,6 @@ mongoose
     ""
   )
   .then((result) => {
-    //console.log(result);
     app.listen(8080);
   })
-  .catch((err) => console.log('app.js에서 표시:',err));
+  .catch((err) => console.log(err));
