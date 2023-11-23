@@ -1,2 +1,2 @@
 # node-express-mongo-restapi-back
- node-express-mongo-restapi용 백엔드 코드
+ node-express, mongo를 사용한 restapi 코드
