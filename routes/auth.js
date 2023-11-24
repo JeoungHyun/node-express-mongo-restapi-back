@@ -10,7 +10,7 @@ router.put("/signup", [
   check("email")
     .isEmail()
     .withMessage("이메일을 확인해주세요")
-    .custom((value, { req }) => {
+    .custom((value) => {
       return User.findOne({ email: value }).then((userDoc) => {
         if (userDoc) {
           return Promise.reject("이메일이 이미 존재합니다.");

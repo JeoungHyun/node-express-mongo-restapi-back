@@ -3,7 +3,12 @@ const bodyParser = require("body-parser");
 
 const feedRoutes = require("./routes/feed");
 const authRoutes = require("./routes/auth");
+
+
 const mongoose = require("mongoose");
+
+
+
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
 
@@ -71,9 +76,13 @@ mongoose
   .connect(
     // monbodb에서 node Connect 정보 붙여 넣어야 됨
     //'url'
-    ""
+    
   )
   .then((result) => {
-    app.listen(8080);
+    const server =app.listen(8080);
+    const io = require('./socket').init(server);
+    io.on('connection', socket =>{
+      console.log('클라이언트 연결됨!')
+    })
   })
   .catch((err) => console.log(err));

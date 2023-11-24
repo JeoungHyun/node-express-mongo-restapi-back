@@ -2,6 +2,8 @@ const Post = require("../model/post");
 const User = require("../model/user");
 const fs = require("fs");
 const path = require("path");
+const io = require("../socket");
+
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1; //없으면 1 저장
   console.log("currentPage:", currentPage);
@@ -9,6 +11,7 @@ exports.getPosts = (req, res, next) => {
   const perPage = 2; //몇 개씩 보여 줄지
   let totalItems;
   Post.find()
+    .populate("creator")
     .countDocuments()
     .then((count) => {
       totalItems = count;
@@ -62,6 +65,16 @@ exports.createPost = (req, res, next) => {
       return user.save();
     })
     .then((result) => {
+      io.getIO().emit("posts", {
+        action: "create",
+        post: {
+          ...post._doc,
+          creator: {
+            _id: req.userId,
+            name: result.name,
+          },
+        },
+      }); //소켓 연결 된 곳에 데이터 발산
       res.status(201).json({
         message: "Post created successfully!",
         post: post,
@@ -131,8 +144,8 @@ exports.updatePost = (req, res, next) => {
     .then((result) => {
       res.status(200).json({ message: "post update", post: result });
     })
-    .catch(err =>{
-      next(err)
+    .catch((err) => {
+      next(err);
     });
 };
 
@@ -155,18 +168,18 @@ exports.deletePost = (req, res, next) => {
       clearImage(post.imageUrl); //이미지파일 삭제
       return Post.findOneAndDelete(postId); //mongo에서 게시물 삭제
     })
-    .then((result)=>{
+    .then((result) => {
       console.log(result);
-      return User.findById(req.userId)
+      return User.findById(req.userId);
     })
     .then((user) => {
-      user.posts.pull(postId) //유저에 저장되어있는 postId 삭제 [관계 제거]
+      user.posts.pull(postId); //유저에 저장되어있는 postId 삭제 [관계 제거]
       return user.save();
     })
-    .then((user)=>{
+    .then((user) => {
       res.status(200).json({ message: "delete success" });
     })
-    .catch(err=>{
+    .catch((err) => {
       next(err);
     });
 };
