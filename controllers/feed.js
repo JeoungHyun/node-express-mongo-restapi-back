@@ -12,6 +12,7 @@ exports.getPosts = (req, res, next) => {
   let totalItems;
   Post.find()
     .populate("creator")
+    .sort({ createdAt: -1 }) //생성일자 내림차순으로 설정
     .countDocuments()
     .then((count) => {
       totalItems = count;
@@ -119,6 +120,7 @@ exports.updatePost = (req, res, next) => {
   }
   imageUrl = req.file.path.replace("\\", "/");
   Post.findById(postId)
+    .populate("creator")
     .then((post) => {
       if (!post) {
         const error = new Error("DB에서 게시물을 찾을 수 없음");
@@ -126,7 +128,7 @@ exports.updatePost = (req, res, next) => {
         throw error;
       }
       //로그인한 사람이랑 맞는지 확인 해야 됨
-      if (post.creator.toString() !== req.userId) {
+      if (post.creator._id.toString() !== req.userId) {
         const error = new Error("사용자 일치하지 않음");
         error.statusCode = 403;
         throw error;
@@ -142,6 +144,7 @@ exports.updatePost = (req, res, next) => {
       return post.save();
     })
     .then((result) => {
+      io.getIO().emit("posts", { action: "update", post: result });
       res.status(200).json({ message: "post update", post: result });
     })
     .catch((err) => {
@@ -177,6 +180,7 @@ exports.deletePost = (req, res, next) => {
       return user.save();
     })
     .then((user) => {
+      io.getIO().emit("posts", { action: "delete", post: postId });
       res.status(200).json({ message: "delete success" });
     })
     .catch((err) => {

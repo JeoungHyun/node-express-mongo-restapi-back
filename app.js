@@ -76,7 +76,7 @@ mongoose
   .connect(
     // monbodb에서 node Connect 정보 붙여 넣어야 됨
     //'url'
-    
+   
   )
   .then((result) => {
     const server =app.listen(8080);
